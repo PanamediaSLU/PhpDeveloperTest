@@ -1,0 +1,13 @@
+language: php
+
+php:
+  - 5.6
+
+before_script:
+  - mkdir -p shippable/codecoverage
+  - mkdir -p shippable/testresults
+
+script:
+ - phpunit --log-junit shippable/testresults/junit.xml --coverage-html shippable/codecoverage --configuration src/tests/phpunit.xml --testsuite=unit+integration
+
+cache: true
