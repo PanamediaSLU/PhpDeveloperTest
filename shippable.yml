@@ -2,12 +2,20 @@ language: php
 
 php:
   - 5.6
+env:
+  global:
+    - EM_ENV=shippable
+    - secure: CHiPakQ4GGugHwOXftmgB/FhJSQww0mH9ch0rWGBiF4D+c5fTJDUcJ90O8KOXLJA0NcAwd5LII74YJVRfg5de4+02LXZi9Mg7Aj2Zhmm/eN7TXGDNBBep+fpVabQYRZ3u39ZZ50mygWNsx0Vk64dOABnTCHVWMETMnMJcUnovwHeQWXTkbi1XZlFQ+6q/3cpv1OzDJDopQi34oGADstWVWTkS+jS9xtZvWNS/PXjBb0wKJXQcB7dzJ5bpcaEzQ/AFw21ydKHfeYFl5YLb7mIhJ/G8VOr3XsQMQcO60ZWUnbea0bkuo0tS+sQtD0xFZp8j7TldAzJ6mCP8/pm1m9rSA==
+
+before_install:
+- composer config -g github-oauth.github.com $MY_GITHUB_TOKEN
 
 before_script:
   - mkdir -p shippable/codecoverage
   - mkdir -p shippable/testresults
+  - composer install --prefer-source --no-interaction
 
 script:
- - phpunit --log-junit shippable/testresults/junit.xml --coverage-html shippable/codecoverage --configuration src/tests/phpunit.xml --testsuite=unit+integration
+ - phpunit --log-junit shippable/testresults/junit.xml --coverage-html shippable/codecoverage LotteryUnitTest.php
 
 cache: true
