@@ -126,7 +126,7 @@ class Lottery
             $drawDate  = $date->sub($interval);
             $increment = -1;
         } else {
-            if ($actualDay > (int) $configParams || ($actualDay == (int) $configParams && $actualHour > '09:15:00')) {
+            if ($actualDay > (int) $configParams || ($actualDay == (int) $configParams && $actualHour > $this->draw_time)) {
                 $drawDate = $date->add($interval);
             } else {
                 $drawDate  = $date;
@@ -141,7 +141,7 @@ class Lottery
             $drawMonth = $drawMonth + $increment;
         }
         
-        return new DateTime("$drawYear-$drawMonth-$configParams 09:15:00");
+        return new DateTime("$drawYear-$drawMonth-$configParams {$this->draw_time}");
     }
     
     protected function getDrawFromYearly($configParams, \DateTime $date, $next_or_last)
