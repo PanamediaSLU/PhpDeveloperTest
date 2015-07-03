@@ -27,7 +27,7 @@ As you can see, there's a big code smell in "duplicated" methods, that are almos
 details. Making the smell go away is your main job.
 
 #### draw_time
-This field stores the hour where the draw is taking place. It's a string in format ``hh:mm:ss`` and it represents the
+This field stores the hour when the draw is taking place. It's a string in format ``hh:mm:ss`` and it represents the
 UTC time.
 
 #### frequency
