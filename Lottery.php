@@ -2,32 +2,69 @@
 
 class Lottery
 {
+
+    /**
+     * Field that stores the frequency
+     * @var string
+     */
     protected $frequency; //d, w0100100, m24, y1225
+
+    /**
+     * Field that stores the draw time in format hh:mm:ss
+     * @var string
+     */
     protected $draw_time;
 
-
+    /**
+     * It returns the value of field frequency
+     *
+     * @return string
+     */
     public function getFrequency()
     {
         return $this->frequency;
     }
 
+    /**
+     * It sets the value of field frequency
+     *
+     * @param string
+     * @return this
+     */
     public function setFrequency($frequency)
     {
         $this->frequency = $frequency;
+
+        return $this;
     }
 
+    /**
+     * It returns the value of field draw_time
+     *
+     * @return string
+     */
     public function getDrawTime()
     {
         return $this->draw_time;
     }
 
+    /**
+     * It sets the value of field draw_time
+     *
+     * @param string
+     * @return $this
+     */
     public function setDrawTime($draw_time)
     {
         $this->draw_time = $draw_time;
+
+        return $this;
     }
 
     /**
-     * @param DateTime $now
+     * It gets the last draw date before $now
+     *
+     * @param  DateTime  $now
      * @return \DateTime
      */
     public function getLastDrawDate(\DateTime $now = null)
@@ -36,7 +73,9 @@ class Lottery
     }
 
     /**
-     * @param \DateTime $now
+     * It gets the next draw date after $now
+     *
+     * @param  \DateTime $now
      * @return \DateTime
      */
     public function getNextDrawDate(\DateTime $now = null)
@@ -45,171 +84,146 @@ class Lottery
     }
 
     /**
-     * @param \DateTime $now
-     * @param string $next_or_last
+     * It returns the last or next draw date based on $date
+     *
+     * @param  \DateTime $date
+     * @param  string    $next_or_last
      * @return mixed
      */
-    private function getDrawDate(\DateTime $now, $next_or_last)
+    private function getDrawDate(\DateTime $date, $next_or_last)
     {
-        $function = 'get' . $next_or_last . 'DrawFrom';
-        if (!$now) {
-            $now = new \DateTime();
+        if (!$date) {
+            $date = new \DateTime();
         }
         $strategy = substr($this->frequency, 0, 1);
+        $configParams = substr($this->frequency, 1);
+        $hour = $date->format("H:i:s");
+        $leap_year = $date->format('L');
+
         switch ($strategy) {
+
             case 'y':
-                $function .= 'Yearly';
+                // Yearly
+                $month_day = $date->format('md');
+                $draw_month = substr($configParams, 0, 2);
+                $draw_day = substr($configParams, 2, 2);
+                if ((int)$draw_month == 2 && $draw_day == 29 && $leap_year == 0) {
+                    // 29th february in non leap years (special case)
+                    while (0 == $date->format('L')) {
+                        if ($next_or_last == 'Next') {
+                            $date = $date->add(new \DateInterval('P1Y'));
+                        } else {
+                            $date = $date->sub(new \DateInterval('P1Y'));
+                        }
+                    }
+                }
+                if (
+                    $next_or_last == 'Next' && (
+                        ($month_day == $configParams && $hour < $this->draw_time) ||
+                        ($month_day < $configParams)) ||
+                    $next_or_last == 'Last' && (
+                        ($month_day == $configParams && $hour > $this->draw_time) ||
+                        ($month_day > $configParams)
+                    )
+                ) {
+                    $date = new \DateTime($date->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
+                } else {
+                    if ($next_or_last == 'Next') {
+                        $date = new \DateTime($date->add(new \DateInterval('P1Y'))->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
+                    } else {
+                        $date = new \DateTime($date->sub(new \DateInterval('P1Y'))->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
+                    }
+                }
                 break;
+
             case 'm':
-                $function .= 'Monthly';
+                // Montly
+                $day_of_month = (int) $date->format('d');
+                $month = $date->format("m");
+                if (($next_or_last == 'Next' &&
+                        ($day_of_month < (int) $configParams || ($day_of_month == (int) $configParams) && $hour < $this->draw_time)
+                    ) || ($next_or_last == 'Last' &&
+                        ($day_of_month > (int) $configParams || ($day_of_month == (int) $configParams) && $hour > $this->draw_time)
+                    )) {
+                    if ($month != 2 || ($month == 2 && ($configParams <= 28) || ($configParams == 29 && $leap_year))) {
+                        $date = new \DateTime($date->format("Y-m-{$configParams} {$this->draw_time}"));
+                    } else {
+                        if ($next_or_last == 'Next') {
+                            $date = new \DateTime($date->format("Y-03-{$configParams} {$this->draw_time}"));
+                        } else {
+                            $date = new \DateTime($date->format("Y-01-{$configParams} {$this->draw_time}"));
+                        }
+                    }
+                } else {
+                    if ($next_or_last == 'Next') {
+                        $next_month = $date->add(new \DateInterval('P1M'));
+
+                        $date = new \DateTime($next_month->format("Y-m-{$configParams} {$this->draw_time}"));
+                    } else {
+                        if ($month != 3
+                            || ($month == 3 &&
+                                ($configParams <= 28) ||
+                                ($configParams == 29 && $leap_year)
+                            )
+                        ) {
+                            $previous_month = $date->sub(new \DateInterval('P1M'));
+                            $date = new \DateTime($previous_month->format("Y-m-{$configParams} {$this->draw_time}"));
+                        } else {
+                            $date = new \DateTime($date->format("Y-01-{$configParams} {$this->draw_time}"));
+                        }
+                    }
+                }
                 break;
+
             case 'w':
-                $function .= 'Weekly';
+                // Weekly
+                $weekday_index = (int) $date->format('N') - 1;
+                $result_date = new \DateTime($date->format("Y-m-d {$this->draw_time}"));
+                $one_day = new \DateInterval('P1D');
+                $days_to_check = 7;
+                while ($days_to_check) {
+                    if (($next_or_last == 'Last' && 1 == (int) $configParams[$weekday_index] && ($days_to_check < 7 || $hour > $this->draw_time)) ||
+                        ($next_or_last == 'Next' && 1 == (int) $configParams[$weekday_index] && ($days_to_check < 7 || $hour < $this->draw_time))) {
+                        break;
+                    } else {
+                        if ($next_or_last == 'Last') {
+                            $result_date = $result_date->sub($one_day);
+                            $weekday_index = ($weekday_index - 1) % 7;
+                        } else {
+                            $result_date = $result_date->add($one_day);
+                            $weekday_index = ($weekday_index + 1) % 7;
+                        }
+                    }
+                    $days_to_check--;
+                }
+                $date = $result_date;
                 break;
+
             case 'd':
-                $function .= 'Daily';
+                // Daily
+                if ($next_or_last == 'Last' && $date->format("H:i:s") <= $this->draw_time) {
+                    $date = new \DateTime($date->sub(new \DateInterval('P1D'))->format("Y-m-d {$this->draw_time}"));
+                } elseif ($next_or_last == 'Next' && $date->format("H:i:s") > $this->draw_time) {
+                    $date = new \DateTime($date->add(new \DateInterval('P1D'))->format("Y-m-d {$this->draw_time}"));
+                } else {
+                    $date = new \DateTime($date->format("Y-m-d {$this->draw_time}"));
+                }
                 break;
+
             default:
-                var_dump($this->frequency);
-            //throw?
+                // Invalid frequency
+                throw new Exception("Invalid frequency");
+                break;
         }
-        return $this->$function(substr($this->frequency, 1), $now);
+
+        return $date;
     }
 
-
-    protected function getLastDrawFromDaily($configParams, \DateTime $date)
-    {
-        if ($date->format("H:i:s") <= $this->draw_time) {
-            return new \DateTime($date->sub(new \DateInterval('P1D'))->format("Y-m-d {$this->draw_time}"));
-        } else {
-            return new \DateTime($date->format("Y-m-d {$this->draw_time}"));
-        }
-    }
-
-    protected function getNextDrawFromDaily($configParams, \DateTime $date)
-    {
-        if ($date->format("H:i:s") > $this->draw_time) {
-            return new \DateTime($date->add(new \DateInterval('P1D'))->format("Y-m-d {$this->draw_time}"));
-        } else {
-            return new \DateTime($date->format("Y-m-d {$this->draw_time}"));
-        }
-    }
-
-    protected function getLastDrawFromWeekly($configParams, \DateTime $date)
-    {
-        $weekday_index = (int)$date->format('N') - 1;
-        $result_date = new \DateTime($date->format("Y-m-d {$this->draw_time}"));
-        $hour = $date->format("H:i:s");
-        $one_day = new \DateInterval('P1D');
-        $days_to_check = 7;
-        while ($days_to_check) {
-            if (1 == (int)$configParams[$weekday_index] && ($days_to_check < 7 || $hour > $this->draw_time)) {
-                return $result_date;
-            } else {
-                $result_date = $result_date->sub($one_day);
-                $weekday_index = ($weekday_index - 1) % 7;
-            }
-            $days_to_check--;
-        }
-    }
-
-    protected function getNextDrawFromWeekly($configParams, \DateTime $date)
-    {
-        $weekday_index = (int)$date->format('N') - 1;
-        $result_date = new \DateTime($date->format("Y-m-d {$this->draw_time}"));
-        $hour = $date->format("H:i:s");
-        $one_day = new \DateInterval('P1D');
-        $days_to_check = 7;
-        while ($days_to_check) {
-            if (1 == (int)$configParams[$weekday_index] && ($days_to_check < 7 || $hour < $this->draw_time)) {
-                return $result_date;
-            } else {
-                $result_date = $result_date->add($one_day);
-                $weekday_index = ($weekday_index + 1) % 7;
-            }
-            $days_to_check--;
-        }
-    }
-
-    protected function getNextDrawFromMonthly($configParams, \DateTime $date)
-    {
-        $day_of_month = (int)$date->format('d');
-        $hour = $date->format("H:i:s");
-        $leap_year = $date->format('L');
-        $month = $date->format("m");
-        if ($day_of_month < (int)$configParams || ($day_of_month == (int)$configParams) && $hour < $this->draw_time) {
-            if ($month != 2
-                || ($month == 2 &&
-                    ($configParams <= 28) ||
-                    ($configParams == 29 && $leap_year)
-                )
-            ) {
-                return new \DateTime($date->format("Y-m-{$configParams} {$this->draw_time}"));
-            } else {
-                return new \DateTime($date->format("Y-03-{$configParams} {$this->draw_time}"));
-            }
-        } else {
-            $next_month = $date->add(new \DateInterval('P1M'));
-            return new \DateTime($next_month->format("Y-m-{$configParams} {$this->draw_time}"));
-        }
-    }
-
-    protected function getLastDrawFromMonthly($configParams, \DateTime $date)
-    {
-        $day_of_month = (int)$date->format('d');
-        $hour = $date->format("H:i:s");
-        $leap_year = $date->format('L');
-        $month = $date->format("m");
-        if ($day_of_month > (int)$configParams || ($day_of_month == (int)$configParams) && $hour > $this->draw_time) {
-            return new \DateTime($date->format("Y-m-{$configParams} {$this->draw_time}"));
-        } else {
-            if ($month != 3
-                || ($month == 3 &&
-                    ($configParams <= 28) ||
-                    ($configParams == 29 && $leap_year)
-                )
-            ) {
-                $previous_month = $date->sub(new \DateInterval('P1M'));
-                return new \DateTime($previous_month->format("Y-m-{$configParams} {$this->draw_time}"));
-            } else {
-                return new \DateTime($date->format("Y-01-{$configParams} {$this->draw_time}"));
-            }
-        }
-    }
-
-    protected function getNextDrawFromYearly($configParams, \DateTime $date)
-    {
-        $month_day = $date->format('md');
-        $hour = $date->format('H:i:s');
-        $draw_month = substr($configParams, 0, 2);
-        $draw_day = substr($configParams, 2, 2);
-        if (
-            ($month_day == $configParams && $hour < $this->draw_time) ||
-            ($month_day < $configParams)
-        ) {
-            return new \DateTime($date->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
-        } else {
-            return new \DateTime($date->add(new \DateInterval('P1Y'))->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
-        }
-    }
-
-    protected function getLastDrawFromYearly($configParams, \DateTime $date)
-    {
-        $month_day = $date->format('md');
-        $hour = $date->format('H:i:s');
-        $draw_month = substr($configParams, 0, 2);
-        $draw_day = substr($configParams, 2, 2);
-        if (
-            ($month_day == $configParams && $hour > $this->draw_time) ||
-            ($month_day > $configParams)
-        ) {
-            return new \DateTime($date->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
-        } else {
-            return new \DateTime($date->sub(new \DateInterval('P1Y'))->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
-        }
-    }
-
-
+    /**
+     * It initializes class Lottery
+     *
+     * @param array $attributes
+     */
     public function initialize($attributes)
     {
         foreach ($attributes as $key => $value) {
