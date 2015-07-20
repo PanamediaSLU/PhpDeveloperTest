@@ -98,6 +98,7 @@ class Lottery
         $strategy = substr($this->frequency, 0, 1);
         $configParams = substr($this->frequency, 1);
         $hour = $date->format("H:i:s");
+        $leap_year = $date->format('L');
 
         switch ($strategy) {
 
@@ -106,6 +107,16 @@ class Lottery
                 $month_day = $date->format('md');
                 $draw_month = substr($configParams, 0, 2);
                 $draw_day = substr($configParams, 2, 2);
+                if ((int)$draw_month == 2 && $draw_day == 29 && $leap_year == 0) {
+                    // 29th february in non leap years (special case)
+                    while (0 == $date->format('L')) {
+                        if ($next_or_last == 'Next') {
+                            $date = $date->add(new \DateInterval('P1Y'));
+                        } else {
+                            $date = $date->sub(new \DateInterval('P1Y'));
+                        }
+                    }
+                }
                 if (
                     $next_or_last == 'Next' && (
                         ($month_day == $configParams && $hour < $this->draw_time) ||
@@ -115,12 +126,12 @@ class Lottery
                         ($month_day > $configParams)
                     )
                 ) {
-                    return new \DateTime($date->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
+                    $date = new \DateTime($date->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
                 } else {
                     if ($next_or_last == 'Next') {
-                        return new \DateTime($date->add(new \DateInterval('P1Y'))->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
+                        $date = new \DateTime($date->add(new \DateInterval('P1Y'))->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
                     } else {
-                        return new \DateTime($date->sub(new \DateInterval('P1Y'))->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
+                        $date = new \DateTime($date->sub(new \DateInterval('P1Y'))->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
                     }
                 }
                 break;
@@ -128,7 +139,6 @@ class Lottery
             case 'm':
                 // Montly
                 $day_of_month = (int) $date->format('d');
-                $leap_year = $date->format('L');
                 $month = $date->format("m");
                 if (($next_or_last == 'Next' &&
                         ($day_of_month < (int) $configParams || ($day_of_month == (int) $configParams) && $hour < $this->draw_time)
