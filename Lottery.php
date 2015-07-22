@@ -30,7 +30,7 @@ class Lottery
      * @param DateTime $now
      * @return \DateTime
      */
-    public function getLastDrawDate(\DateTime $now = null)
+    public function getLastDrawDate($now = null)
     {
         return $this->getDrawDate($now, 'Last');
     }
@@ -39,7 +39,7 @@ class Lottery
      * @param \DateTime $now
      * @return \DateTime
      */
-    public function getNextDrawDate(\DateTime $now = null)
+    public function getNextDrawDate($now = null)
     {
         return $this->getDrawDate($now, 'Next');
     }
@@ -49,11 +49,11 @@ class Lottery
      * @param string $next_or_last
      * @return mixed
      */
-    private function getDrawDate(\DateTime $now, $next_or_last)
+    private function getDrawDate($now, $next_or_last)
     {
         $function = 'get' . $next_or_last . 'DrawFrom';
         if (!$now) {
-            $now = new \DateTime();
+            $now = new DateTime();
         }
         $strategy = substr($this->frequency, 0, 1);
         switch ($strategy) {
@@ -77,30 +77,30 @@ class Lottery
     }
 
 
-    protected function getLastDrawFromDaily($configParams, \DateTime $date)
+    protected function getLastDrawFromDaily($configParams,$date)
     {
         if ($date->format("H:i:s") <= $this->draw_time) {
-            return new \DateTime($date->sub(new \DateInterval('P1D'))->format("Y-m-d {$this->draw_time}"));
+            return new DateTime($date->sub(new DateInterval('P1D'))->format("Y-m-d {$this->draw_time}"));
         } else {
-            return new \DateTime($date->format("Y-m-d {$this->draw_time}"));
+            return new DateTime($date->format("Y-m-d {$this->draw_time}"));
         }
     }
 
-    protected function getNextDrawFromDaily($configParams, \DateTime $date)
+    protected function getNextDrawFromDaily($configParams,$date)
     {
         if ($date->format("H:i:s") > $this->draw_time) {
-            return new \DateTime($date->add(new \DateInterval('P1D'))->format("Y-m-d {$this->draw_time}"));
+            return new DateTime($date->add(new DateInterval('P1D'))->format("Y-m-d {$this->draw_time}"));
         } else {
-            return new \DateTime($date->format("Y-m-d {$this->draw_time}"));
+            return new DateTime($date->format("Y-m-d {$this->draw_time}"));
         }
     }
 
-    protected function getLastDrawFromWeekly($configParams, \DateTime $date)
+    protected function getLastDrawFromWeekly($configParams,$date)
     {
         $weekday_index = (int)$date->format('N') - 1;
-        $result_date = new \DateTime($date->format("Y-m-d {$this->draw_time}"));
+        $result_date = new DateTime($date->format("Y-m-d {$this->draw_time}"));
         $hour = $date->format("H:i:s");
-        $one_day = new \DateInterval('P1D');
+        $one_day = new DateInterval('P1D');
         $days_to_check = 7;
         while ($days_to_check) {
             if (1 == (int)$configParams[$weekday_index] && ($days_to_check < 7 || $hour > $this->draw_time)) {
@@ -113,12 +113,12 @@ class Lottery
         }
     }
 
-    protected function getNextDrawFromWeekly($configParams, \DateTime $date)
+    protected function getNextDrawFromWeekly($configParams,$date)
     {
         $weekday_index = (int)$date->format('N') - 1;
-        $result_date = new \DateTime($date->format("Y-m-d {$this->draw_time}"));
+        $result_date = new DateTime($date->format("Y-m-d {$this->draw_time}"));
         $hour = $date->format("H:i:s");
-        $one_day = new \DateInterval('P1D');
+        $one_day = new DateInterval('P1D');
         $days_to_check = 7;
         while ($days_to_check) {
             if (1 == (int)$configParams[$weekday_index] && ($days_to_check < 7 || $hour < $this->draw_time)) {
@@ -131,7 +131,7 @@ class Lottery
         }
     }
 
-    protected function getNextDrawFromMonthly($configParams, \DateTime $date)
+    protected function getNextDrawFromMonthly($configParams,$date)
     {
         $day_of_month = (int)$date->format('d');
         $hour = $date->format("H:i:s");
@@ -144,24 +144,24 @@ class Lottery
                     ($configParams == 29 && $leap_year)
                 )
             ) {
-                return new \DateTime($date->format("Y-m-{$configParams} {$this->draw_time}"));
+                return new DateTime($date->format("Y-m-{$configParams} {$this->draw_time}"));
             } else {
-                return new \DateTime($date->format("Y-03-{$configParams} {$this->draw_time}"));
+                return new DateTime($date->format("Y-03-{$configParams} {$this->draw_time}"));
             }
         } else {
-            $next_month = $date->add(new \DateInterval('P1M'));
-            return new \DateTime($next_month->format("Y-m-{$configParams} {$this->draw_time}"));
+            $next_month = $date->add(new DateInterval('P1M'));
+            return new DateTime($next_month->format("Y-m-{$configParams} {$this->draw_time}"));
         }
     }
 
-    protected function getLastDrawFromMonthly($configParams, \DateTime $date)
+    protected function getLastDrawFromMonthly($configParams,$date)
     {
         $day_of_month = (int)$date->format('d');
         $hour = $date->format("H:i:s");
         $leap_year = $date->format('L');
         $month = $date->format("m");
         if ($day_of_month > (int)$configParams || ($day_of_month == (int)$configParams) && $hour > $this->draw_time) {
-            return new \DateTime($date->format("Y-m-{$configParams} {$this->draw_time}"));
+            return new DateTime($date->format("Y-m-{$configParams} {$this->draw_time}"));
         } else {
             if ($month != 3
                 || ($month == 3 &&
@@ -170,14 +170,14 @@ class Lottery
                 )
             ) {
                 $previous_month = $date->sub(new \DateInterval('P1M'));
-                return new \DateTime($previous_month->format("Y-m-{$configParams} {$this->draw_time}"));
+                return new DateTime($previous_month->format("Y-m-{$configParams} {$this->draw_time}"));
             } else {
-                return new \DateTime($date->format("Y-01-{$configParams} {$this->draw_time}"));
+                return new DateTime($date->format("Y-01-{$configParams} {$this->draw_time}"));
             }
         }
     }
 
-    protected function getNextDrawFromYearly($configParams, \DateTime $date)
+    protected function getNextDrawFromYearly($configParams,$date)
     {
         $month_day = $date->format('md');
         $hour = $date->format('H:i:s');
@@ -187,13 +187,13 @@ class Lottery
             ($month_day == $configParams && $hour < $this->draw_time) ||
             ($month_day < $configParams)
         ) {
-            return new \DateTime($date->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
+            return new DateTime($date->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
         } else {
-            return new \DateTime($date->add(new \DateInterval('P1Y'))->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
+            return new DateTime($date->add(new \DateInterval('P1Y'))->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
         }
     }
 
-    protected function getLastDrawFromYearly($configParams, \DateTime $date)
+    protected function getLastDrawFromYearly($configParams,$date)
     {
         $month_day = $date->format('md');
         $hour = $date->format('H:i:s');
@@ -203,9 +203,9 @@ class Lottery
             ($month_day == $configParams && $hour > $this->draw_time) ||
             ($month_day > $configParams)
         ) {
-            return new \DateTime($date->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
+            return new DateTime($date->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
         } else {
-            return new \DateTime($date->sub(new \DateInterval('P1Y'))->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
+            return new DateTime($date->sub(new \DateInterval('P1Y'))->format("Y-{$draw_month}-{$draw_day} {$this->draw_time}"));
         }
     }
 
@@ -221,7 +221,7 @@ class Lottery
                 if (method_exists($this, $setter)) {
                     $this->$setter($value);
                 } else {
-                    throw new \Exception("Bad property name: \"$key\"");
+                    throw new Exception("Bad property name: \"$key\"");
                 }
             }
         }
