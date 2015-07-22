@@ -1,7 +1,8 @@
 <?php
 require_once('Lottery.php');
 
-class LotteryUnitTest extends \PHPUnit_Framework_TestCase
+//extends PHPUnit_Framework_TestCase no tengo esta clasepara generar la herencia
+class LotteryUnitTest 
 {
     /**
      * method getNextDrawDate
@@ -15,7 +16,7 @@ class LotteryUnitTest extends \PHPUnit_Framework_TestCase
      */
     public function test_getNextDrawDate_called_returnProperResult($frequency, $draw_time, $now, $expectedDrawDate)
     {
-        $this->exerciseGetDrawDate($frequency, $draw_time, $now, $expectedDrawDate, 'getNextDrawDate');
+       return $this->exerciseGetDrawDate($frequency, $draw_time, $now, $expectedDrawDate, 'getNextDrawDate');
     }
 
     public function getConfigurationAndExpectedResult()
@@ -34,7 +35,7 @@ class LotteryUnitTest extends \PHPUnit_Framework_TestCase
             ['w0001010', '09:15:00', '2015-02-01 01:01:01', '2015-02-05 09:15:00'], //thursday and saturday
             ['w0010001', '09:15:00', '2015-02-01 10:01:01', '2015-02-04 09:15:00'], //wednesday and sunday but hour passed
             ['d', '09:15:00', '2015-02-01 10:01:01', '2015-02-02 09:15:00'], //daily, before hour
-            ['d', '09:15:00', '2015-02-01 01:01:01', '2015-02-01 09:15:00'], //daily, after hour
+            ['d', '09:15:00', '2015-02-01 01:01:01', '2015-02-01 09:15:00'] //daily, after hour 
         ];
     }
 
@@ -50,7 +51,7 @@ class LotteryUnitTest extends \PHPUnit_Framework_TestCase
      */
     public function test_getLastDrawDate_called_returnProperResult($frequency, $draw_time, $now, $expectedDrawDate)
     {
-        $this->exerciseGetDrawDate($frequency, $draw_time, $now, $expectedDrawDate, 'getLastDrawDate');
+        return $this->exerciseGetDrawDate($frequency, $draw_time, $now, $expectedDrawDate, 'getLastDrawDate');
 
     }
 
@@ -70,7 +71,7 @@ class LotteryUnitTest extends \PHPUnit_Framework_TestCase
             ['w0001010', '09:15:00', '2015-02-01 01:01:01', '2015-01-31 09:15:00'],
             ['w0010001', '09:15:00', '2015-02-01 10:01:01', '2015-02-01 09:15:00'],
             ['d', '09:15:00', '2015-02-01 10:01:01', '2015-02-01 09:15:00'],
-            ['d', '09:15:00', '2015-02-01 01:01:01', '2015-01-31 09:15:00'],
+            ['d', '09:15:00', '2015-02-01 01:01:01', '2015-01-31 09:15:00']
         ];
 
     }
@@ -89,8 +90,9 @@ class LotteryUnitTest extends \PHPUnit_Framework_TestCase
             'frequency' => $frequency,
             'draw_time' => $draw_time
         ]);
-        $actual = $sut->$method(new \DateTime($now));
-        $expected = new \DateTime($expectedDrawDate);
-        $this->assertEquals($expected, $actual);
+        $actual = $sut->$method(new DateTime($now));
+        $expected = new DateTime($expectedDrawDate);
+       return $this->assertEquals($expected, $actual);
     }
 }
+?>
