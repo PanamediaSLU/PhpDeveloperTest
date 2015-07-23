@@ -12,11 +12,10 @@ before_install:
 - composer config -g github-oauth.github.com $MY_GITHUB_TOKEN
 
 before_script:
-  - mkdir -p shippable/codecoverage
   - mkdir -p shippable/testresults
   - composer install --prefer-source --no-interaction
 
 script:
- - phpunit --log-junit shippable/testresults/junit.xml --coverage-html shippable/codecoverage LotteryUnitTest.php
+ - phpunit --log-junit shippable/testresults/junit.xml LotteryUnitTest.php
 
 cache: true
