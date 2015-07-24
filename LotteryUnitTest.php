@@ -27,7 +27,7 @@ class LotteryUnitTest extends \PHPUnit_Framework_TestCase
             ['m29', '09:15:00', '2016-02-01 01:01:01', '2016-02-29 09:15:00'], //29th of each month
             ['m29', '09:15:00', '2015-02-01 01:01:01', '2015-03-29 09:15:00'], //29th of each month
             ['w1000000', '09:15:00', '2015-02-01 01:01:01', '2015-02-02 09:15:00'], //each monday
-            ['w0100000', '09:15:00', '2015-02-01 01:01:01', '2015-02-03 09:15:00'], //each and tuesday
+            ['w0100000', '09:15:00', '2015-02-01 01:01:01', '2015-02-03 09:15:00'], //each tuesday
             ['w1111100', '09:15:00', '2015-02-01 01:01:01', '2015-02-02 09:15:00'], //monday to friday
             ['w0000011', '09:15:00', '2015-02-01 01:01:01', '2015-02-01 09:15:00'], //saturday and friday
             ['w0100100', '09:15:00', '2015-02-01 01:01:01', '2015-02-03 09:15:00'], //tuesday and friday
@@ -84,11 +84,7 @@ class LotteryUnitTest extends \PHPUnit_Framework_TestCase
      */
     private function exerciseGetDrawDate($frequency, $draw_time, $now, $expectedDrawDate, $method)
     {
-        $sut = new Lottery();
-        $sut->initialize([
-            'frequency' => $frequency,
-            'draw_time' => $draw_time
-        ]);
+        $sut = LotteryFactory::create($frequency, $draw_time);
         $actual = $sut->$method(new \DateTime($now));
         $expected = new \DateTime($expectedDrawDate);
         $this->assertEquals($expected, $actual);
